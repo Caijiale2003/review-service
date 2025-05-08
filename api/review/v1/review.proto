@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package review.v1;
+
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+option go_package = "review-service/./api/review/v1;v1";
+option java_multiple_files = true;
+option java_package = "..api.review.v1";
+
+service Review {
+	// 创建评价
+	rpc CreateReview (CreateReviewRequest) returns (CreateReviewReply){
+		option (google.api.http) = {
+			post: "/v1/review",
+			body: "*"
+		};
+	};
+	// 删除评价
+	rpc DeleteReview (DeleteReviewRequest) returns (DeleteReviewReply){
+		option (google.api.http) = {
+			delete: "/v1/review/{reviewID}",
+		};
+	};
+	// 获取评价
+	rpc GetReview (GetReviewRequest) returns (GetReviewReply){
+		option (google.api.http) = {
+			get: "/v1/review/{reviewID}",
+		};
+	};
+	// 根据用户id获取评价
+	rpc ListReviewByUserID (ListReviewRequest) returns (ListReviewReply){
+		option (google.api.http) = {
+			get: "/v1/review/user/{userID}",
+		};
+	};
+	// 回复评价
+	rpc ReplyReview(ReplyReviewRequest) returns (ReplyReviewReply) {
+		option (google.api.http) = {
+			post: "/v1/review/reply",
+			body: "*"
+		};
+	};
+	// 申诉评价
+	rpc AppealReview(AppealReviewRequest) returns (AppealReviewReply) {
+		option (google.api.http) = {
+			post: "/v1/review/appeal",
+			body: "*"
+		};
+	};
+	// 审核评价
+	rpc AuditReview (AuditReviewRequest)returns (AuditReviewReply) {
+		option (google.api.http) = {
+			post: "/v1/review/audit",
+			body: "*"
+		};
+	};
+}
+
+// 创建评价请求
+message CreateReviewRequest {
+	int64 userID = 1 [(validate.rules).int64 = {gt: 0}];
+	int64 orderID = 2 [(validate.rules).int64 = {gt: 0}];
+	int64 score = 3 [(validate.rules).int64 = {in: [1,2,3,4,5]}];
+	int64 serviceScore = 4 [(validate.rules).int64 = {in: [1,2,3,4,5]}];
+	int64 expressScore = 5 [(validate.rules).int64 = {in: [1,2,3,4,5]}];
+	string content = 6 [(validate.rules).string = {min_len: 1, max_len: 255}];
+	string picInfo = 7;
+	string videoInfo= 8;
+	bool annoymous = 9;
+}
+message CreateReviewReply {
+	int64 reviewID = 1;
+}
+
+// 删除评价请求
+message DeleteReviewRequest {
+    int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];
+    int64 userID = 2 [(validate.rules).int64 = {gt: 0}];
+}
+
+message DeleteReviewReply {
+    int64 reviewID = 1;
+}
+
+// 获取评价请求
+message GetReviewRequest {
+    int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];
+}
+
+message GetReviewReply {
+    int64 reviewID = 1;
+    int64 userID = 2;
+    int64 orderID = 3;
+    int64 score = 4;
+    int64 serviceScore = 5;
+    int64 expressScore = 6;
+    string content = 7;
+    string picInfo = 8;
+    string videoInfo = 9;
+    bool annoymous = 10;
+    string replyContent = 11;
+    string appealContent = 12;
+    int64 status = 13;  // 评价状态
+    string createTime = 14;
+    string updateTime = 15;
+}
+
+// 根据用户ID获取评价列表请求
+message ListReviewRequest {
+    int64 userID = 1 [(validate.rules).int64 = {gt: 0}];
+    int32 page = 2 [(validate.rules).int32 = {gt: 0}];
+    int32 pageSize = 3 [(validate.rules).int32 = {gt: 0, lt: 100}];
+}
+
+message ListReviewReply {
+    repeated GetReviewReply reviews = 1;
+    int64 total = 2;
+}
+
+// 回复评价请求
+message ReplyReviewRequest {
+    int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];  // 评价id
+    int64 storeID = 2 [(validate.rules).int64 = {gt: 0}];   // 店铺id
+    string content = 3 [(validate.rules).string = {min_len: 1, max_len: 255}];  // 评价内容
+    string picInfo = 4;  // 媒体信息：图片
+    string videoInfo = 5;  // 媒体信息：视频
+    string extJSON = 6;  // 信息扩展
+    string ctrlJSON = 7;  // 控制扩展
+}
+
+message ReplyReviewReply {
+    int64 replyID = 1;
+}
+
+// 申诉评价请求
+message AppealReviewRequest {
+    int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];  // 评价id
+    int64 storeID = 2 [(validate.rules).int64 = {gt: 0}];   // 店铺id
+    string reason = 3 [(validate.rules).string = {min_len: 1, max_len: 50}];  // 申诉原因类别
+    string content = 4 [(validate.rules).string = {min_len: 1, max_len: 255}];  // 申诉内容描述
+    string picInfo = 5;  // 媒体信息：图片
+    string videoInfo = 6;  // 媒体信息：视频
+    string extJSON = 7;  // 信息扩展
+    string ctrlJSON = 8;  // 控制扩展
+}
+
+message AppealReviewReply {
+    int64 reviewID = 1;
+}
+
+// 审核评价请求
+message AuditReviewRequest {
+    int64 reviewID = 1 [(validate.rules).int64 = {gt: 0}];  // 评价id
+    int32 status = 3 [(validate.rules).int32 = {in: [20,30]}];  // 状态:20申诉通过；30申诉驳回
+    string opRemarks = 4 [(validate.rules).string = {max_len: 255}];  // 运营备注
+    string opUser = 5 [(validate.rules).string = {min_len: 1, max_len: 50}];  // 运营者标识
+    string extJSON = 6;  // 信息扩展
+    string ctrlJSON = 7;  // 控制扩展
+}
+
+message AuditReviewReply {
+    int64 reviewID = 1;
+}
