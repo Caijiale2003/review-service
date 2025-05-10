@@ -1,10 +1,10 @@
 server:
   http:
     addr: 0.0.0.0:8080
-    timeout: 1s
+    timeout: 10s
   grpc:
     addr: 0.0.0.0:9090
-    timeout: 1s
+    timeout: 10s
 data:
   database:
     driver: mysql
@@ -16,3 +16,7 @@ data:
 snowflake:
   start_time: "2025-04-19"
   machine_id: 1
+registry:
+  consul:
+    address: 127.0.0.1:8500
+    scheme: http
